@@ -1,29 +1,49 @@
 import React from "react";
 import Ticket from "./Ticket";
 import PropTypes from "prop-types";
+//add for firebase
+import { useSelector } from 'react-redux'
+import { useFirestoreConnect, isLoaded, isEmpty } from 'react-redux-firebase'
 
 //below: we use a .map loop to loop through the tickets. We pass in index and use it to assign a unique key to help differentiate them
 function TicketList(props){
+
+  useFirestoreConnect([
+    { collection: 'tickets' }
+  ]);
+
+    // The useSelector() hook comes from react-redux.
+    const tickets = useSelector(state => state.firestore.ordered.tickets);
+
+    // react-redux-firebase also offers a useful isLoaded() function.
+    if (isLoaded(tickets)) {
+      return (
+        <React.Fragment>
+          <hr/>
+          {tickets.map((ticket) => {
+            return <Ticket
+              whenTicketClicked = { props.onTicketSelection }
+              names={ticket.names}
+              location={ticket.location}
+              issue={ticket.issue}
+              formattedWaitTime={ticket.formattedWaitTime}
+              id={ticket.id}
+              key={ticket.id}/>
+          })}
+        </React.Fragment>
+      );
+    // If the tickets aren't loaded yet, our fragment will return a "Loading..." message.
+    } else {
   return (
     <React.Fragment>
-      
-      <hr/>
-      {Object.values(props.ticketList).map((ticket) =>
-        <Ticket 
-        //Below line passes props.onTicketSelection down to Ticket component as a prop so that Ticket componenet can handle determining if it's been clicked on. onTicketSelection was passed down TicketControl as a prop of TicketControl and it is now being renamed as whenTicketClicked and passed down further to Ticket as a prop.
-          whenTicketClicked = { props.onTicketSelection }
-          names={ticket.names}
-          location={ticket.location}
-          issue={ticket.issue}
-          id={ticket.id}
-          key={ticket.id}/>
-      )}
+      <h3>Loading...</h3>
     </React.Fragment>
   );
 }
+}
 
 TicketList.propTypes = {
-  ticketList: PropTypes.object,
+  //ticketList: PropTypes.object,
   onTicketSelection: PropTypes.func
 };
 
